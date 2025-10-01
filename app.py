@@ -32,20 +32,15 @@ def submit_survey():
 
     # Add submission_id if missing
     if not getattr(submission, "submission_id", None):
-	    submission.submission_id = hashlib.sha256(
-        (submission.email + datetime.utcnow().strftime("%Y%m%d%H")).encode()
-    ).hexdigest()
-   # Hash email and age
-    submission.email = hashlib.sha256(submission.email.encode()).hexdigest()
-    submission.age = hashlib.sha256(str(submission.age).encode()).hexdigest()
+        submission.submission_id = hashlib.sha256(
+            (submission.email + datetime.utcnow().strftime("%Y%m%d%H")).encode()
+        ).hexdigest()
 
-
-    # Save to file
+    # Save to file (email and age NOT hashed)
     record = submission.dict()
     record["received_at"] = datetime.utcnow().isoformat()
     record["ip"] = request.remote_addr
     record["user_agent"] = request.headers.get("User-Agent", None)
-
 
     with open("data/survey.ndjson", "a") as f:
         f.write(json.dumps(record) + "\n")
