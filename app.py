@@ -30,13 +30,21 @@ def submit_survey():
     except ValidationError as ve:
         return jsonify({"error": "validation_error", "details": ve.errors()}), 422
 
+    # Default source to "homepage" if missing
+    if not submission.source or submission.source == "other":
+        submission.source = "homepage"
+
     # Add submission_id if missing
-    if not getattr(submission, "submission_id", None):
+    if not submission.submission_id:
         submission.submission_id = hashlib.sha256(
             (submission.email + datetime.utcnow().strftime("%Y%m%d%H")).encode()
         ).hexdigest()
 
-    # Save to file (email and age NOT hashed)
+    # Hash email and age
+    submission.email = hashlib.sha256(submission.email.encode()).hexdigest()
+    submission.age = hashlib.sha256(str(submission.age).encode()).hexdigest()
+
+    # Save record
     record = submission.dict()
     record["received_at"] = datetime.utcnow().isoformat()
     record["ip"] = request.remote_addr
@@ -46,7 +54,5 @@ def submit_survey():
         f.write(json.dumps(record) + "\n")
 
     return jsonify({"status": "ok"}), 201
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-
