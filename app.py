@@ -35,6 +35,9 @@ def submit_survey():
         submission.submission_id = hashlib.sha256(
             (submission.email + datetime.utcnow().strftime("%Y%m%d%H")).encode()
         ).hexdigest()
+    # Hash email and age
+    submission.email = hashlib.sha256(submission.email.encode()).hexdigest()
+    submission.age = hashlib.sha256(str(submission.age).encode()).hexdigest()
 
     # Save to file
     record = submission.dict()
